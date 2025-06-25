@@ -1,9 +1,6 @@
-// app/signup/page.tsx
 'use client'
 
 import { useState } from 'react'
-import { supabase } from '@/lib/supabaseClient'
-import bcrypt from 'bcryptjs'
 import { useRouter } from 'next/navigation'
 
 export default function SignupPage() {
@@ -25,40 +22,19 @@ export default function SignupPage() {
     setError('')
     setSuccess(false)
 
-    const { name, email, password } = form
+    const res = await fetch('/api/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(form),
+    })
 
-    // Vérifier si l'email existe déjà
-    const { data: existingUser, error: checkError } = await supabase
-      .from('users')
-      .select('id')
-      .eq('email', email)
-      .single()
+    const data = await res.json()
 
-    if (existingUser) {
-      setError("Un utilisateur avec cet email existe déjà.")
-      return
-    }
-
-    // Hasher le mot de passe
-    const hashedPassword = await bcrypt.hash(password, 10)
-
-    // Créer l'utilisateur
-    const { error: insertError } = await supabase.from('users').insert([
-      {
-        name,
-        email,
-        password: hashedPassword,
-        role: 'user',
-      },
-    ])
-
-    if (insertError) {
-      setError("Une erreur est survenue lors de l'inscription.")
-      console.error(insertError)
+    if (!res.ok) {
+      setError(data.error || 'Erreur inconnue')
     } else {
       setSuccess(true)
       setForm({ name: '', email: '', password: '' })
-      // Rediriger vers /login ou autre après 2 sec
       setTimeout(() => router.push('/login'), 2000)
     }
   }
@@ -103,3 +79,4 @@ export default function SignupPage() {
     </div>
   )
 }
+
