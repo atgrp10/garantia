@@ -76,7 +76,14 @@ export default function SignupPage() {
           S’inscrire
         </button>
       </form>
+
+      {/* 👇 Lien vers la page de connexion */}
+      <p className="text-sm mt-4 text-center">
+        Vous avez déjà un compte ?{' '}
+        <a href="/login" className="text-blue-600 underline">
+          Se connecter
+        </a>
+      </p>
     </div>
   )
 }
-
