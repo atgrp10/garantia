@@ -1,0 +1,111 @@
+'use client'
+
+import { useState } from 'react'
+
+export default function TicketPage() {
+  const [form, setForm] = useState({
+    user_id: '',
+    problem: '',
+    type: '',
+    priorité: '',
+    date_incident: '',
+  })
+
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState(false)
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    setForm({ ...form, [e.target.name]: e.target.value })
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+    setSuccess(false)
+
+    const res = await fetch('/api/ticket', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(form),
+    })
+
+    const data = await res.json()
+
+    if (!res.ok) {
+      setError(data.error || 'Erreur inconnue')
+    } else {
+      setSuccess(true)
+      setForm({
+        user_id: '',
+        problem: '',
+        type: '',
+        priorité: '',
+        date_incident: '',
+      })
+    }
+  }
+
+  return (
+    <div className="max-w-md mx-auto mt-10 p-6 border rounded-xl shadow">
+      <h1 className="text-xl font-bold mb-4">Créer un ticket</h1>
+      {error && <p className="text-red-600 mb-2">{error}</p>}
+      {success && <p className="text-green-600 mb-2">Ticket créé avec succès !</p>}
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <input
+          type="text"
+          name="user_id"
+          placeholder="ID utilisateur"
+          className="w-full border p-2 rounded"
+          value={form.user_id}
+          onChange={handleChange}
+          required
+        />
+        <input
+          type="text"
+          name="problem"
+          placeholder="Décrivez le problème"
+          className="w-full border p-2 rounded"
+          value={form.problem}
+          onChange={handleChange}
+          required
+        />
+        <select
+          name="type"
+          className="w-full border p-2 rounded"
+          value={form.type}
+          onChange={handleChange}
+          required
+        >
+          <option value="">Type de problème</option>
+          <option value="Plomberie">Plomberie</option>
+          <option value="Électricité">Électricité</option>
+          <option value="Ventilation">Ventilation</option>
+          <option value="Finition">Finition</option>
+        </select>
+        <select
+          name="priorité"
+          className="w-full border p-2 rounded"
+          value={form.priorité}
+          onChange={handleChange}
+          required
+        >
+          <option value="">Priorité</option>
+          <option value="Urgent">Urgent</option>
+          <option value="Moyen">Moyen</option>
+          <option value="Faible">Faible</option>
+        </select>
+        <input
+          type="date"
+          name="date_incident"
+          className="w-full border p-2 rounded"
+          value={form.date_incident}
+          onChange={handleChange}
+          required
+        />
+        <button type="submit" className="w-full bg-black text-white py-2 rounded">
+          Soumettre le ticket
+        </button>
+      </form>
+    </div>
+  )
+}
