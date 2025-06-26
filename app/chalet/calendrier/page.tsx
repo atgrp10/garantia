@@ -102,6 +102,15 @@ export default function CalendrierChalet() {
       <p className="mt-4 text-sm text-center text-gray-500">
         * Seules les réservations approuvées apparaissent ici
       </p>
+
+      <p className="mt-6 text-center text-sm">
+        <a
+          href="/dashboard"
+          className="text-gray-400 hover:text-blue-600 underline transition duration-150"
+        >
+          ← Retour au tableau de bord
+        </a>
+      </p>
     </div>
   )
 }
