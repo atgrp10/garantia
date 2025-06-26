@@ -3,8 +3,8 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/authOptions'
 import { supabase } from '@/lib/supabaseClient'
 
-type ChaletReservation = {
-  id: number
+type Reservation = {
+  id: string
   date: string
   start_time: string
   end_time: string
@@ -24,7 +24,7 @@ export async function GET() {
   }
 
   const { data, error } = await supabase
-    .from('chalet_reservation')
+    .from('reservation') // ✅ correction ici
     .select('id, date, start_time, end_time, status, user:user_id(name, unite)')
     .order('date', { ascending: true })
 
@@ -33,7 +33,7 @@ export async function GET() {
     return NextResponse.json({ error: 'Erreur chargement des réservations' }, { status: 500 })
   }
 
-  const formatted = (data as ChaletReservation[]).map((r) => ({
+  const formatted = (data as Reservation[]).map((r) => ({
     id: r.id,
     date: r.date,
     start_time: r.start_time,
@@ -62,7 +62,7 @@ export async function POST(req: Request) {
     }
 
     const { error } = await supabase
-      .from('chalet_reservation')
+      .from('reservation') // ✅ correction ici aussi
       .update({ status })
       .eq('id', id)
 
@@ -72,8 +72,9 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ message: 'Statut mis à jour' }, { status: 200 })
-  } catch (err: unknown) {
-    console.error('Erreur serveur:', err instanceof Error ? err.message : err)
+  } catch (err) {
+    console.error('Erreur serveur:', err)
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
   }
 }
+
