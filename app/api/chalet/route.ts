@@ -52,11 +52,15 @@ export async function POST(req: Request) {
   }
 
   try {
-    const { date, start_time, end_time, reglement } = await req.json()
+    let { date, start_time, end_time, reglement } = await req.json()
 
     if (!date || !start_time || !end_time || !reglement) {
       return NextResponse.json({ error: 'Champs requis manquants' }, { status: 400 })
     }
+
+    // Correction timezone : s'assurer que date est bien au format local YYYY-MM-DD
+    const localDate = new Date(date + 'T00:00:00')
+    date = localDate.toISOString().split('T')[0]
 
     const { data: conflits, error: conflitErreur } = await supabase
       .from('reservation')

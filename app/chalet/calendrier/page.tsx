@@ -4,9 +4,9 @@ import { useEffect, useState } from 'react'
 
 type Reservation = {
   id: string
-  date: string // YYYY-MM-DD
-  start_time: string // HH:mm:ss
-  end_time: string // HH:mm:ss
+  date: string
+  start_time: string
+  end_time: string
   unite: string
   status: string
 }
@@ -59,7 +59,7 @@ export default function CalendrierChalet() {
         >
           ◀
         </button>
-        <h1 className="text-xl font-bold">
+        <h1 className="text-xl font-bold capitalize">
           {currentDate.toLocaleDateString('fr-CA', { month: 'long', year: 'numeric' })}
         </h1>
         <button
@@ -83,7 +83,7 @@ export default function CalendrierChalet() {
 
         {daysInMonth.map(({ date, dayReservations }) => (
           <div
-            key={date.toDateString()} // ✅ Correction ici : évite décalage UTC
+            key={date.toDateString()}
             className="border p-2 rounded min-h-[80px] text-sm flex flex-col bg-white shadow-sm"
           >
             <div className="font-bold text-gray-700">{date.getDate()}</div>
@@ -92,7 +92,8 @@ export default function CalendrierChalet() {
                 key={r.id}
                 className="mt-1 p-1 rounded text-xs bg-blue-100 text-blue-800"
               >
-                {r.start_time.slice(0, 5)} - {r.end_time.slice(0, 5)} <br /> {r.unite}
+                {r.start_time.slice(0, 5)} - {r.end_time.slice(0, 5)}<br />
+                Est-{r.unite !== '—' ? r.unite : '000'}
               </div>
             ))}
           </div>
