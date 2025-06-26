@@ -4,6 +4,14 @@ import { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 
+type Reservation = {
+  id: number
+  date: string
+  start_time: string
+  end_time: string
+  status: string
+}
+
 export default function ChaletReservationPage() {
   const { data: session } = useSession()
   const router = useRouter()
@@ -17,7 +25,7 @@ export default function ChaletReservationPage() {
 
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
-  const [reservations, setReservations] = useState<any[]>([])
+  const [reservations, setReservations] = useState<Reservation[]>([])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target
@@ -91,7 +99,6 @@ export default function ChaletReservationPage() {
 
   return (
     <div className="max-w-xl mx-auto p-6">
-      {/* Lien discret vers le dashboard */}
       <div className="text-right mb-2">
         <button
           onClick={() => router.push('/dashboard')}
@@ -168,7 +175,6 @@ export default function ChaletReservationPage() {
         </button>
       </form>
 
-      {/* Liste des réservations de l’usager */}
       <div className="mt-8">
         <h2 className="text-lg font-semibold mb-2">Mes réservations</h2>
         {reservations.length === 0 ? (
