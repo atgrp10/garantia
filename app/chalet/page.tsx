@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useSession } from 'next-auth/react'
+import Link from 'next/link'
 
 export default function ChaletReservationPage() {
   const { data: session } = useSession()
@@ -73,6 +74,13 @@ export default function ChaletReservationPage() {
 
   return (
     <div className="max-w-xl mx-auto p-6">
+      {/* Lien discret vers le dashboard */}
+      <div className="mb-4">
+        <Link href="/dashboard" className="text-sm text-gray-500 underline hover:text-gray-700">
+          ← Retour au tableau de bord
+        </Link>
+      </div>
+
       <h1 className="text-2xl font-bold mb-6 text-center text-blue-700">
         Réservation du chalet urbain
       </h1>
