@@ -52,15 +52,6 @@ export default function CalendrierChalet() {
 
   return (
     <div className="max-w-4xl mx-auto p-4">
-      <div className="mb-4 text-center">
-        <a
-          href="/dashboard"
-          className="text-gray-400 hover:text-blue-600 underline transition duration-150"
-        >
-          ← Retour au tableau de bord
-        </a>
-      </div>
-
       <div className="flex justify-between items-center mb-6">
         <button
           onClick={handlePrevMonth}
@@ -86,13 +77,13 @@ export default function CalendrierChalet() {
       </div>
 
       <div className="grid grid-cols-7 gap-2">
-        {[...Array((startOfMonth.getDay() + 6) % 7)].map((_, i) => (
+        {[...Array(startOfMonth.getDay())].map((_, i) => (
           <div key={`pad-${i}`} />
         ))}
 
         {daysInMonth.map(({ date, dayReservations }) => (
           <div
-            key={date.toISOString()}
+            key={date.toDateString()} // ✅ Correction ici : évite décalage UTC
             className="border p-2 rounded min-h-[80px] text-sm flex flex-col bg-white shadow-sm"
           >
             <div className="font-bold text-gray-700">{date.getDate()}</div>
@@ -110,6 +101,15 @@ export default function CalendrierChalet() {
 
       <p className="mt-4 text-sm text-center text-gray-500">
         * Seules les réservations approuvées apparaissent ici
+      </p>
+
+      <p className="mt-6 text-center text-sm">
+        <a
+          href="/dashboard"
+          className="text-gray-400 hover:text-blue-600 underline transition duration-150"
+        >
+          ← Retour au tableau de bord
+        </a>
       </p>
     </div>
   )
