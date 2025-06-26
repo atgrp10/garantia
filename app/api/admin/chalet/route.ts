@@ -3,7 +3,20 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/authOptions'
 import { supabase } from '@/lib/supabaseClient'
 
-export async function GET(req: NextRequest) {
+type ChaletReservation = {
+  id: number
+  date: string
+  start_time: string
+  end_time: string
+  status: string
+  user: {
+    name?: string
+    unite?: string
+  } | null
+}
+
+// 🔍 GET: toutes les réservations pour l'admin
+export async function GET() {
   const session = await getServerSession(authOptions)
 
   if (!session || session.user.role !== 'admin') {
@@ -20,7 +33,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Erreur chargement des réservations' }, { status: 500 })
   }
 
-  const formatted = data.map((r: any) => ({
+  const formatted = (data as ChaletReservation[]).map((r) => ({
     id: r.id,
     date: r.date,
     start_time: r.start_time,
@@ -33,6 +46,7 @@ export async function GET(req: NextRequest) {
   return NextResponse.json(formatted)
 }
 
+// 📝 POST: mise à jour du statut
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions)
 
@@ -48,7 +62,7 @@ export async function POST(req: Request) {
     }
 
     const { error } = await supabase
-      .from('chalet_reservation') // ✅ bien aligné avec ton schema
+      .from('chalet_reservation')
       .update({ status })
       .eq('id', id)
 
@@ -63,3 +77,4 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
   }
 }
+
