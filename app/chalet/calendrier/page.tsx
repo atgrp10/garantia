@@ -5,8 +5,8 @@ import { useEffect, useState } from 'react'
 type Reservation = {
   id: string
   date: string // YYYY-MM-DD
-  heure_debut: string // HH:mm
-  heure_fin: string // HH:mm
+  start_time: string // HH:mm:ss
+  end_time: string // HH:mm:ss
   unite: string
   status: string
 }
@@ -20,21 +20,14 @@ export default function CalendrierChalet() {
   }, [])
 
   const fetchReservations = async () => {
-    const res = await fetch('/api/chalet')
-    const data = await res.json()
-
-    const formatted = data
-      .filter((r: any) => r.status === 'acceptée')
-      .map((r: any) => ({
-        id: r.id,
-        date: r.date,
-        heure_debut: r.start_time,
-        heure_fin: r.end_time,
-        unite: r.unite || '',
-        status: r.status,
-      }))
-
-    setReservations(formatted)
+    try {
+      const res = await fetch('/api/chalet')
+      const data: Reservation[] = await res.json()
+      const accepted = data.filter((r) => r.status === 'acceptée')
+      setReservations(accepted)
+    } catch (err) {
+      console.error('Erreur chargement calendrier:', err)
+    }
   }
 
   const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
@@ -88,7 +81,6 @@ export default function CalendrierChalet() {
       </div>
 
       <div className="grid grid-cols-7 gap-2">
-        {/* padding days before the 1st */}
         {[...Array(startOfMonth.getDay())].map((_, i) => (
           <div key={`pad-${i}`} />
         ))}
@@ -104,7 +96,7 @@ export default function CalendrierChalet() {
                 key={r.id}
                 className="mt-1 p-1 rounded text-xs bg-blue-100 text-blue-800"
               >
-                {r.heure_debut} - {r.heure_fin} <br /> {r.unite}
+                {r.start_time.slice(0, 5)} - {r.end_time.slice(0, 5)} <br /> {r.unite}
               </div>
             ))}
           </div>
