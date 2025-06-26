@@ -10,6 +10,9 @@ type Ticket = {
   status: string
   user_id: string
   created_at: string
+  user?: {
+    name: string
+  }
 }
 
 export default function AdminPage() {
@@ -41,7 +44,7 @@ export default function AdminPage() {
     })
 
     if (res.ok) {
-      fetchTickets() // recharge les tickets
+      fetchTickets()
     } else {
       const data = await res.json()
       alert(data.error || 'Erreur lors de la mise à jour')
@@ -63,7 +66,7 @@ export default function AdminPage() {
               <th className="p-2 border">Type</th>
               <th className="p-2 border">Priorité</th>
               <th className="p-2 border">Status</th>
-              <th className="p-2 border">User ID</th>
+              <th className="p-2 border">Nom du client</th>
               <th className="p-2 border">Actions</th>
             </tr>
           </thead>
@@ -75,7 +78,7 @@ export default function AdminPage() {
                 <td className="p-2 border">{ticket.type}</td>
                 <td className="p-2 border">{ticket.priorité}</td>
                 <td className="p-2 border">{ticket.status}</td>
-                <td className="p-2 border">{ticket.user_id}</td>
+                <td className="p-2 border">{ticket.user?.name || 'Inconnu'}</td>
                 <td className="p-2 border space-x-2">
                   <button
                     onClick={() => updateStatus(ticket.id, 'en traitement')}

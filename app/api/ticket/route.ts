@@ -9,9 +9,11 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url)
     const user_id = searchParams.get('user_id')
 
-    let query = supabase.from('ticket').select('*').order('created_at', { ascending: false })
+    let query = supabase
+      .from('ticket')
+      .select('*, user:users(name)')
+      .order('created_at', { ascending: false })
 
-    // Si user_id est présent dans l’URL, on filtre
     if (user_id) {
       query = query.eq('user_id', user_id)
     }
@@ -50,16 +52,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Champs requis manquants' }, { status: 400 })
     }
 
-    const { error } = await supabase.from('ticket').insert([
-      {
-        user_id: session.user.id, // ✅ automatiquement récupéré
-        problem,
-        type,
-        priorité,
-        date_incident,
-        status: 'ouvert',
-      },
-    ])
+    const { error } = await supabase.from('ticket').insert([{
+      user_id: session.user.id,
+      problem,
+      type,
+      priorité,
+      date_incident,
+      status: 'ouvert',
+    }])
 
     if (error) {
       console.error('Erreur Supabase:', error)
