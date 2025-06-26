@@ -16,19 +16,19 @@ export default function CalendrierChalet() {
   const [currentDate, setCurrentDate] = useState(new Date())
 
   useEffect(() => {
+    const fetchReservations = async () => {
+      try {
+        const res = await fetch('/api/chalet')
+        const data: Reservation[] = await res.json()
+        const accepted = data.filter(r => r.status === 'acceptée')
+        setReservations(accepted)
+      } catch (err) {
+        console.error('Erreur chargement calendrier:', err)
+      }
+    }
+
     fetchReservations()
   }, [])
-
-  const fetchReservations = async () => {
-    try {
-      const res = await fetch('/api/chalet')
-      const data: Reservation[] = await res.json()
-      const accepted = data.filter((r) => r.status === 'acceptée')
-      setReservations(accepted)
-    } catch (err) {
-      console.error('Erreur chargement calendrier:', err)
-    }
-  }
 
   const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
   const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0)
@@ -41,15 +41,11 @@ export default function CalendrierChalet() {
   })
 
   const handlePrevMonth = () => {
-    const prev = new Date(currentDate)
-    prev.setMonth(prev.getMonth() - 1)
-    setCurrentDate(prev)
+    setCurrentDate(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1))
   }
 
   const handleNextMonth = () => {
-    const next = new Date(currentDate)
-    next.setMonth(next.getMonth() + 1)
-    setCurrentDate(next)
+    setCurrentDate(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1))
   }
 
   const dayOfWeek = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam']
