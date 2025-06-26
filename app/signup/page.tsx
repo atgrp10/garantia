@@ -9,11 +9,13 @@ export default function SignupPage() {
     name: '',
     email: '',
     password: '',
+    bloc: '',
+    unite_num: '',
   })
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value })
   }
 
@@ -21,6 +23,16 @@ export default function SignupPage() {
     e.preventDefault()
     setError('')
     setSuccess(false)
+
+    if (!['Est', 'Ouest'].includes(form.bloc)) {
+      setError('Veuillez sélectionner un bloc valide (Est ou Ouest).')
+      return
+    }
+
+    if (!/^\d{3}$/.test(form.unite_num)) {
+      setError('Le numéro d’unité doit contenir exactement 3 chiffres.')
+      return
+    }
 
     const res = await fetch('/api/signup', {
       method: 'POST',
@@ -34,7 +46,13 @@ export default function SignupPage() {
       setError(data.error || 'Erreur inconnue')
     } else {
       setSuccess(true)
-      setForm({ name: '', email: '', password: '' })
+      setForm({
+        name: '',
+        email: '',
+        password: '',
+        bloc: '',
+        unite_num: '',
+      })
       setTimeout(() => router.push('/login'), 2000)
     }
   }
@@ -72,12 +90,33 @@ export default function SignupPage() {
           onChange={handleChange}
           required
         />
+        <select
+          name="bloc"
+          className="w-full border p-2 rounded"
+          value={form.bloc}
+          onChange={handleChange}
+          required
+        >
+          <option value="">-- Sélectionnez votre bloc --</option>
+          <option value="Est">Est</option>
+          <option value="Ouest">Ouest</option>
+        </select>
+        <input
+          type="text"
+          name="unite_num"
+          placeholder="Numéro d’unité (ex : 304)"
+          pattern="\d{3}"
+          maxLength={3}
+          className="w-full border p-2 rounded"
+          value={form.unite_num}
+          onChange={handleChange}
+          required
+        />
         <button type="submit" className="w-full bg-black text-white py-2 rounded">
           S’inscrire
         </button>
       </form>
 
-      {/* 👇 Lien vers la page de connexion */}
       <p className="text-sm mt-4 text-center">
         Vous avez déjà un compte ?{' '}
         <a href="/login" className="text-blue-600 underline">

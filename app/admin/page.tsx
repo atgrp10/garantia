@@ -14,6 +14,7 @@ type Ticket = {
   created_at: string
   user?: {
     name: string
+    unite: string
   }
 }
 
@@ -63,7 +64,6 @@ export default function AdminPage() {
     router.push('/login')
   }
 
-  // 🔎 Application du filtre et de la recherche
   const filteredTickets = tickets.filter(ticket => {
     const matchName = ticket.user?.name?.toLowerCase().includes(search.toLowerCase())
     const matchStatus = filterStatus ? ticket.status === filterStatus : true
@@ -114,7 +114,7 @@ export default function AdminPage() {
               <th className="p-2 border">Type</th>
               <th className="p-2 border">Priorité</th>
               <th className="p-2 border">Statut</th>
-              <th className="p-2 border">Nom du client</th>
+              <th className="p-2 border">Nom (Unité)</th>
               <th className="p-2 border">Actions</th>
             </tr>
           </thead>
@@ -126,7 +126,7 @@ export default function AdminPage() {
                 <td className="p-2 border">{ticket.type}</td>
                 <td className="p-2 border">{ticket.priorité}</td>
                 <td className="p-2 border">{ticket.status}</td>
-                <td className="p-2 border">{ticket.user?.name || 'Inconnu'}</td>
+                <td className="p-2 border">{ticket.user?.name || 'Inconnu'} ({ticket.user?.unite || 'N/A'})</td>
                 <td className="p-2 border space-x-2">
                   <button
                     onClick={() => updateStatus(ticket.id, 'en traitement')}

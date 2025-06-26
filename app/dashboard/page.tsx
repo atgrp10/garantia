@@ -39,8 +39,13 @@ export default function DashboardPage() {
 
   return (
     <div className="max-w-2xl mx-auto mt-10 p-4">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Mes tickets</h1>
+      {/* En-tête avec message personnalisé */}
+      <div className="flex justify-between items-center mb-4">
+        <div>
+          <h1 className="text-2xl font-bold">
+            Bienvenue {session?.user.name} ({session?.user.unite})
+          </h1>
+        </div>
         <button
           onClick={handleLogout}
           className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition"

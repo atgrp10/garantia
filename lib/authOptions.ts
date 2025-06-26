@@ -31,6 +31,7 @@ export const authOptions: NextAuthOptions = {
           name: user.name,
           email: user.email,
           role: user.role,
+          unite: user.unite, // 👈 Ajout ici
         }
       },
     }),
@@ -43,6 +44,7 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id
         token.role = user.role
+        token.unite = user.unite // 👈 Ajout ici
       }
       return token
     },
@@ -50,11 +52,11 @@ export const authOptions: NextAuthOptions = {
       if (token) {
         session.user.id = token.id as string
         session.user.role = token.role as string
+        session.user.unite = token.unite as string // 👈 Ajout ici
       }
       return session
     },
     async redirect({ baseUrl, url }) {
-      // Si l'utilisateur clique sur un lien dans le même domaine, on le respecte
       return url.startsWith(baseUrl) ? url : `${baseUrl}/dashboard`
     },
   },
