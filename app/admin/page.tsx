@@ -1,6 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { signOut } from 'next-auth/react'
 
 type Ticket = {
   id: number
@@ -19,6 +21,11 @@ export default function AdminPage() {
   const [tickets, setTickets] = useState<Ticket[]>([])
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
+
+  const [search, setSearch] = useState('')
+  const [filterStatus, setFilterStatus] = useState('')
+
+  const router = useRouter()
 
   useEffect(() => {
     fetchTickets()
@@ -51,9 +58,50 @@ export default function AdminPage() {
     }
   }
 
+  const handleLogout = async () => {
+    await signOut({ redirect: false })
+    router.push('/login')
+  }
+
+  // 🔎 Application du filtre et de la recherche
+  const filteredTickets = tickets.filter(ticket => {
+    const matchName = ticket.user?.name?.toLowerCase().includes(search.toLowerCase())
+    const matchStatus = filterStatus ? ticket.status === filterStatus : true
+    return matchName && matchStatus
+  })
+
   return (
     <div className="max-w-7xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-4">Liste des tickets</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Liste des tickets</h1>
+        <button
+          onClick={handleLogout}
+          className="bg-gray-300 text-black px-4 py-2 rounded hover:bg-gray-400 transition"
+        >
+          Se déconnecter
+        </button>
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-4 mb-4">
+        <input
+          type="text"
+          placeholder="Rechercher par nom"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="border px-3 py-2 rounded w-full sm:w-1/2"
+        />
+        <select
+          value={filterStatus}
+          onChange={(e) => setFilterStatus(e.target.value)}
+          className="border px-3 py-2 rounded w-full sm:w-1/2"
+        >
+          <option value="">-- Filtrer par statut --</option>
+          <option value="ouvert">Ouvert</option>
+          <option value="en traitement">En traitement</option>
+          <option value="résolu">Résolu</option>
+        </select>
+      </div>
+
       {error && <p className="text-red-600 mb-2">{error}</p>}
       {loading ? (
         <p>Chargement...</p>
@@ -65,13 +113,13 @@ export default function AdminPage() {
               <th className="p-2 border">Problème</th>
               <th className="p-2 border">Type</th>
               <th className="p-2 border">Priorité</th>
-              <th className="p-2 border">Status</th>
+              <th className="p-2 border">Statut</th>
               <th className="p-2 border">Nom du client</th>
               <th className="p-2 border">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {tickets.map(ticket => (
+            {filteredTickets.map(ticket => (
               <tr key={ticket.id}>
                 <td className="p-2 border">{ticket.id}</td>
                 <td className="p-2 border">{ticket.problem}</td>
