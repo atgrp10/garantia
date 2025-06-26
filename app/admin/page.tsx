@@ -4,160 +4,124 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { signOut } from 'next-auth/react'
 
-type Ticket = {
+type Reservation = {
   id: number
-  problem: string
-  type: string
-  priorité: string
+  date: string
+  start_time: string
+  end_time: string
   status: string
-  user_id: string
-  created_at: string
   user?: {
     name: string
     unite: string
   }
 }
 
-export default function AdminPage() {
-  const [tickets, setTickets] = useState<Ticket[]>([])
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(true)
-
-  const [search, setSearch] = useState('')
+export default function AdminChaletPage() {
+  const [reservations, setReservations] = useState<Reservation[]>([])
   const [filterStatus, setFilterStatus] = useState('')
-  const [filterUnite, setFilterUnite] = useState('')
-
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const router = useRouter()
 
   useEffect(() => {
-    fetchTickets()
+    fetchReservations()
   }, [])
 
-  const fetchTickets = async () => {
+  const fetchReservations = async () => {
     setLoading(true)
-    const res = await fetch('/api/ticket')
+    const res = await fetch('/api/chalet')
     const data = await res.json()
+
     if (!res.ok) {
       setError(data.error || 'Erreur de chargement')
     } else {
-      setTickets(data)
+      setReservations(data)
     }
     setLoading(false)
   }
 
   const updateStatus = async (id: number, status: string) => {
-    const res = await fetch('/api/admin/update-ticket', {
+    const res = await fetch('/api/admin/chalet', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id, status }),
     })
 
     if (res.ok) {
-      fetchTickets()
+      fetchReservations()
     } else {
-      const data = await res.json()
-      alert(data.error || 'Erreur lors de la mise à jour')
+      alert('Erreur lors de la mise à jour du statut')
     }
   }
 
-  const handleLogout = async () => {
-    await signOut({ redirect: false })
-    router.push('/login')
-  }
-
-  const filteredTickets = tickets.filter(ticket => {
-    const matchName = ticket.user?.name?.toLowerCase().includes(search.toLowerCase())
-    const matchStatus = filterStatus ? ticket.status === filterStatus : true
-    const matchUnite = filterUnite ? ticket.user?.unite === filterUnite : true
-    return matchName && matchStatus && matchUnite
-  })
-
-  const allUnites = Array.from(new Set(tickets.map(ticket => ticket.user?.unite).filter(Boolean)))
+  const filteredReservations = reservations.filter(res =>
+    filterStatus ? res.status === filterStatus : true
+  )
 
   return (
-    <div className="max-w-7xl mx-auto p-6">
+    <div className="max-w-5xl mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Liste des tickets</h1>
+        <h1 className="text-2xl font-bold">Réservations du chalet urbain</h1>
         <button
-          onClick={handleLogout}
+          onClick={async () => {
+            await signOut({ redirect: false })
+            router.push('/login')
+          }}
           className="bg-gray-300 text-black px-4 py-2 rounded hover:bg-gray-400 transition"
         >
           Se déconnecter
         </button>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-4 mb-4">
-        <input
-          type="text"
-          placeholder="Rechercher par nom"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="border px-3 py-2 rounded w-full sm:w-1/3"
-        />
-        <select
-          value={filterStatus}
-          onChange={(e) => setFilterStatus(e.target.value)}
-          className="border px-3 py-2 rounded w-full sm:w-1/3"
-        >
-          <option value="">-- Filtrer par statut --</option>
-          <option value="ouvert">Ouvert</option>
-          <option value="en traitement">En traitement</option>
-          <option value="résolu">Résolu</option>
-        </select>
-        <select
-          value={filterUnite}
-          onChange={(e) => setFilterUnite(e.target.value)}
-          className="border px-3 py-2 rounded w-full sm:w-1/3"
-        >
-          <option value="">-- Filtrer par unité --</option>
-          {allUnites.map(unite => (
-            <option key={unite} value={unite}>{unite}</option>
-          ))}
-        </select>
-      </div>
+      <select
+        value={filterStatus}
+        onChange={(e) => setFilterStatus(e.target.value)}
+        className="mb-4 border px-3 py-2 rounded"
+      >
+        <option value="">-- Filtrer par statut --</option>
+        <option value="en_attente">En attente</option>
+        <option value="accepté">Accepté</option>
+        <option value="refusé">Refusé</option>
+      </select>
 
-      {error && <p className="text-red-600 mb-2">{error}</p>}
+      {error && <p className="text-red-600">{error}</p>}
       {loading ? (
         <p>Chargement...</p>
       ) : (
         <table className="min-w-full border border-gray-200">
           <thead className="bg-gray-100">
             <tr>
-              <th className="p-2 border">ID</th>
-              <th className="p-2 border">Problème</th>
-              <th className="p-2 border">Type</th>
-              <th className="p-2 border">Priorité</th>
-              <th className="p-2 border">Statut</th>
+              <th className="p-2 border">Date</th>
+              <th className="p-2 border">Heure</th>
               <th className="p-2 border">Nom</th>
               <th className="p-2 border">Unité</th>
+              <th className="p-2 border">Statut</th>
               <th className="p-2 border">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {filteredTickets.map(ticket => (
-              <tr key={ticket.id}>
-                <td className="p-2 border">{ticket.id}</td>
-                <td className="p-2 border">{ticket.problem}</td>
-                <td className="p-2 border">{ticket.type}</td>
-                <td className="p-2 border">{ticket.priorité}</td>
-                <td className="p-2 border">{ticket.status}</td>
-                <td className="p-2 border">{ticket.user?.name || 'Inconnu'}</td>
-                <td className="p-2 border">{ticket.user?.unite || 'N/A'}</td>
+            {filteredReservations.map((res) => (
+              <tr key={res.id}>
+                <td className="p-2 border">{res.date}</td>
+                <td className="p-2 border">{res.start_time} - {res.end_time}</td>
+                <td className="p-2 border">{res.user?.name || 'Inconnu'}</td>
+                <td className="p-2 border">{res.user?.unite || 'N/A'}</td>
+                <td className="p-2 border">{res.status}</td>
                 <td className="p-2 border space-x-2">
                   <button
-                    onClick={() => updateStatus(ticket.id, 'en traitement')}
-                    className="text-blue-600 underline"
-                  >
-                    En traitement
-                  </button>
-                  <button
-                    onClick={() => updateStatus(ticket.id, 'résolu')}
+                    onClick={() => updateStatus(res.id, 'accepté')}
                     className="text-green-600 underline"
                   >
-                    Résolu
+                    Accepter
                   </button>
                   <button
-                    onClick={() => updateStatus(ticket.id, 'ouvert')}
+                    onClick={() => updateStatus(res.id, 'refusé')}
+                    className="text-red-600 underline"
+                  >
+                    Refuser
+                  </button>
+                  <button
+                    onClick={() => updateStatus(res.id, 'en_attente')}
                     className="text-gray-600 underline"
                   >
                     Réinitialiser
