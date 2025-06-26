@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/authOptions'
 import { supabase } from '@/lib/supabaseClient'
@@ -15,7 +15,7 @@ type ChaletReservation = {
   } | null
 }
 
-// 🔍 GET: toutes les réservations pour l'admin
+// 🔍 GET: liste des réservations
 export async function GET() {
   const session = await getServerSession(authOptions)
 
