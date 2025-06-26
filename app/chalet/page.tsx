@@ -4,9 +4,9 @@ import { useEffect, useState } from 'react'
 
 type Reservation = {
   id: number
-  date: string // YYYY-MM-DD
-  heure_debut: string // HH:mm
-  heure_fin: string // HH:mm
+  date: string
+  heure_debut: string
+  heure_fin: string
   unite: string
   status: string
 }
@@ -22,7 +22,7 @@ export default function CalendrierChalet() {
   const fetchReservations = async () => {
     const res = await fetch('/api/chalet')
     const data = await res.json()
-    setReservations(data.filter((r: Reservation) => r.status === 'accepté'))
+    setReservations(data.filter((r: Reservation) => r.status === 'acceptée'))
   }
 
   const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
@@ -76,22 +76,14 @@ export default function CalendrierChalet() {
       </div>
 
       <div className="grid grid-cols-7 gap-2">
-        {/* padding days before the 1st */}
         {[...Array(startOfMonth.getDay())].map((_, i) => (
           <div key={`pad-${i}`} />
         ))}
-
         {daysInMonth.map(({ date, dayReservations }) => (
-          <div
-            key={date.toISOString()}
-            className="border p-2 rounded min-h-[80px] text-sm flex flex-col bg-white shadow-sm"
-          >
+          <div key={date.toISOString()} className="border p-2 rounded min-h-[80px] text-sm flex flex-col bg-white shadow-sm">
             <div className="font-bold text-gray-700">{date.getDate()}</div>
             {dayReservations.map((r) => (
-              <div
-                key={r.id}
-                className="mt-1 p-1 rounded text-xs bg-blue-100 text-blue-800"
-              >
+              <div key={r.id} className="mt-1 p-1 rounded text-xs bg-blue-100 text-blue-800">
                 {r.heure_debut} - {r.heure_fin} <br /> {r.unite}
               </div>
             ))}

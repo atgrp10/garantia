@@ -14,9 +14,10 @@ type Reservation = {
   status: string
 }
 
-function AdminChaletPage() {
+export default function AdminChaletPage() {
   const [reservations, setReservations] = useState<Reservation[]>([])
   const [loading, setLoading] = useState(true)
+
   const router = useRouter()
 
   const fetchReservations = async () => {
@@ -118,5 +119,3 @@ function AdminChaletPage() {
     </div>
   )
 }
-
-export default AdminChaletPage
