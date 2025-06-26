@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 
 type Reservation = {
-  id: number
+  id: string
   date: string // YYYY-MM-DD
   heure_debut: string // HH:mm
   heure_fin: string // HH:mm
@@ -22,7 +22,19 @@ export default function CalendrierChalet() {
   const fetchReservations = async () => {
     const res = await fetch('/api/chalet')
     const data = await res.json()
-    setReservations(data.filter((r: Reservation) => r.status === 'accepté'))
+
+    const formatted = data
+      .filter((r: any) => r.status === 'acceptée')
+      .map((r: any) => ({
+        id: r.id,
+        date: r.date,
+        heure_debut: r.start_time,
+        heure_fin: r.end_time,
+        unite: r.unite || '',
+        status: r.status,
+      }))
+
+    setReservations(formatted)
   }
 
   const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
