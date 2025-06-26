@@ -3,7 +3,18 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/authOptions'
 import { supabase } from '@/lib/supabaseClient'
 
-// GET : accessible à tous pour afficher les réservations dans le calendrier
+type Reservation = {
+  id: string
+  date: string
+  start_time: string
+  end_time: string
+  status: string
+  user_id: {
+    unite?: string | null
+  } | null
+}
+
+// GET : accessible à tous pour le calendrier
 export async function GET() {
   try {
     const { data, error } = await supabase
@@ -11,12 +22,12 @@ export async function GET() {
       .select('id, date, start_time, end_time, status, user_id (unite)')
       .order('date', { ascending: true })
 
-    if (error) {
-      console.error('Erreur chargement calendrier:', error)
+    if (error || !data) {
+      console.error('Erreur chargement:', error)
       return NextResponse.json({ error: 'Erreur chargement calendrier' }, { status: 500 })
     }
 
-    const formatted = (data || []).map((r: any) => ({
+    const formatted = (data as Reservation[]).map((r) => ({
       id: r.id,
       date: r.date,
       start_time: r.start_time,
@@ -27,16 +38,16 @@ export async function GET() {
 
     return NextResponse.json(formatted)
   } catch (err) {
-    console.error('Erreur serveur calendrier:', err)
+    console.error('Erreur serveur GET:', err)
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
   }
 }
 
-// POST : création de réservation, requiert authentification
+// POST : soumission de réservation (authentifié)
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions)
 
-  if (!session || !session.user || !session.user.id) {
+  if (!session || !session.user?.id) {
     return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
   }
 
@@ -47,7 +58,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Champs requis manquants' }, { status: 400 })
     }
 
-    // Vérifie les conflits
     const { data: conflits, error: conflitErreur } = await supabase
       .from('reservation')
       .select('*')
@@ -55,8 +65,8 @@ export async function POST(req: Request) {
       .or(`start_time.lt.${end_time},end_time.gt.${start_time}`)
 
     if (conflitErreur) {
-      console.error('Erreur vérif conflit:', conflitErreur)
-      return NextResponse.json({ error: 'Erreur de vérification' }, { status: 500 })
+      console.error('Erreur conflit:', conflitErreur)
+      return NextResponse.json({ error: 'Erreur de vérification de conflit' }, { status: 500 })
     }
 
     if (conflits && conflits.length > 0) {
