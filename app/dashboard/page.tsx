@@ -54,12 +54,26 @@ export default function DashboardPage() {
         </button>
       </div>
 
-      <button
-        className="mb-6 bg-blue-600 text-white px-4 py-2 rounded"
-        onClick={() => router.push('/ticket')}
-      >
-        + Nouveau ticket
-      </button>
+      <div className="space-y-4 mb-6">
+        <button
+          className="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+          onClick={() => router.push('/ticket')}
+        >
+          + Nouveau ticket
+        </button>
+        <button
+          className="w-full bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
+          onClick={() => router.push('/chalet')}
+        >
+          🏡 Réserver le chalet urbain
+        </button>
+        <button
+          className="w-full bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition"
+          onClick={() => router.push('/chalet/calendrier')}
+        >
+          📅 Voir le calendrier du chalet
+        </button>
+      </div>
 
       {tickets.length === 0 ? (
         <p>Aucun ticket trouvé.</p>
