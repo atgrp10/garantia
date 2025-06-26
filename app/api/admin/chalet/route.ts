@@ -28,20 +28,23 @@ export async function GET() {
     .select('id, date, start_time, end_time, status, user:user_id(name, unite)')
     .order('date', { ascending: true })
 
-  if (error) {
+  if (error || !data) {
     console.error('Erreur Supabase:', error)
     return NextResponse.json({ error: 'Erreur chargement des réservations' }, { status: 500 })
   }
 
-  const formatted = (data as ChaletReservation[]).map((r) => ({
-    id: r.id,
-    date: r.date,
-    start_time: r.start_time,
-    end_time: r.end_time,
-    status: r.status,
-    user_name: r.user?.name || 'Inconnu',
-    unite: r.user?.unite || '—',
-  }))
+  const formatted = data.map((r: any) => {
+    const reservation = r as ChaletReservation
+    return {
+      id: reservation.id,
+      date: reservation.date,
+      start_time: reservation.start_time,
+      end_time: reservation.end_time,
+      status: reservation.status,
+      user_name: reservation.user?.name || 'Inconnu',
+      unite: reservation.user?.unite || '—',
+    }
+  })
 
   return NextResponse.json(formatted)
 }
@@ -77,4 +80,3 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
   }
 }
-

@@ -25,7 +25,13 @@ export default function AdminChaletPage() {
     try {
       const res = await fetch('/api/admin/chalet')
       const data = await res.json()
-      setReservations(data)
+      
+      if (Array.isArray(data)) {
+        setReservations(data)
+      } else {
+        console.error('Réponse inattendue:', data)
+        setReservations([]) // évite le crash .map
+      }
     } catch (err) {
       console.error('Erreur chargement:', err)
     } finally {
