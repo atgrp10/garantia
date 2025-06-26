@@ -1,13 +1,28 @@
 'use client'
 
 import { useSession } from 'next-auth/react'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+
+interface Ticket {
+  id: number
+  problem: string
+  type: string
+  priorité: string
+  status: string
+  date_incident: string
+}
 
 export default function DashboardPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
-  const [tickets, setTickets] = useState([])
+  const [tickets, setTickets] = useState<Ticket[]>([])
+
+  const fetchTickets = useCallback(async () => {
+    const res = await fetch(`/api/ticket?user_id=${session?.user.id}`)
+    const data = await res.json()
+    setTickets(data)
+  }, [session?.user.id])
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -15,13 +30,7 @@ export default function DashboardPage() {
     } else if (session?.user) {
       fetchTickets()
     }
-  }, [session, status])
-
-  const fetchTickets = async () => {
-    const res = await fetch(`/api/ticket?user_id=${session?.user.id}`)
-    const data = await res.json()
-    setTickets(data)
-  }
+  }, [session, status, fetchTickets, router])
 
   return (
     <div className="max-w-2xl mx-auto mt-10 p-4">
@@ -38,7 +47,7 @@ export default function DashboardPage() {
         <p>Aucun ticket trouvé.</p>
       ) : (
         <ul className="space-y-2">
-          {tickets.map((ticket: any) => (
+          {tickets.map((ticket) => (
             <li key={ticket.id} className="border p-4 rounded shadow">
               <p className="font-semibold">{ticket.problem}</p>
               <p>Type : {ticket.type}</p>
