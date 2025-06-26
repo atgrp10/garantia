@@ -1,13 +1,16 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { signIn, useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 
 export default function LoginPage() {
   const router = useRouter()
+  const { data: session, status } = useSession()
+
   const [form, setForm] = useState({ email: '', password: '' })
   const [error, setError] = useState('')
-  const [success, setSuccess] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value })
@@ -16,29 +19,36 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
-    setSuccess(false)
+    setLoading(true)
 
-    const res = await fetch('/api/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form),
+    const res = await signIn('credentials', {
+      redirect: false,
+      email: form.email,
+      password: form.password,
     })
 
-    const data = await res.json()
-
-    if (!res.ok) {
-      setError(data.error || 'Erreur inconnue')
-    } else {
-      setSuccess(true)
-      setTimeout(() => router.push('/ticket'), 2000)
+    if (res?.error) {
+      setError('Identifiants invalides')
+      setLoading(false)
     }
   }
+
+  useEffect(() => {
+    if (status === 'authenticated') {
+      if (session?.user.role === 'admin') {
+        router.replace('/admin')
+      } else {
+        router.replace('/ticket')
+      }
+    }
+  }, [status, session, router])
 
   return (
     <div className="max-w-md mx-auto mt-10 p-6 border rounded-xl shadow">
       <h1 className="text-xl font-bold mb-4">Connexion</h1>
       {error && <p className="text-red-600 mb-2">{error}</p>}
-      {success && <p className="text-green-600 mb-2">Connexion réussie !</p>}
+      {loading && <p className="text-blue-600 mb-2">Connexion en cours...</p>}
+
       <form onSubmit={handleSubmit} className="space-y-4">
         <input
           type="email"
@@ -58,7 +68,11 @@ export default function LoginPage() {
           onChange={handleChange}
           required
         />
-        <button type="submit" className="w-full bg-black text-white py-2 rounded">
+        <button
+          type="submit"
+          className="w-full bg-black text-white py-2 rounded"
+          disabled={loading}
+        >
           Se connecter
         </button>
       </form>

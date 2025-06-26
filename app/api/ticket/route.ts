@@ -3,13 +3,20 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/authOptions'
 import { supabase } from '@/lib/supabaseClient'
 
-// ✅ GET → utilisé dans /admin pour récupérer la liste des tickets
-export async function GET() {
+// ✅ GET → utilisé pour /dashboard (user) ou /admin (tous)
+export async function GET(req: Request) {
   try {
-    const { data, error } = await supabase
-      .from('ticket')
-      .select('*')
-      .order('created_at', { ascending: false })
+    const { searchParams } = new URL(req.url)
+    const user_id = searchParams.get('user_id')
+
+    let query = supabase.from('ticket').select('*').order('created_at', { ascending: false })
+
+    // Si user_id est présent dans l’URL, on filtre
+    if (user_id) {
+      query = query.eq('user_id', user_id)
+    }
+
+    const { data, error } = await query
 
     if (error) {
       console.error('Erreur Supabase:', error)

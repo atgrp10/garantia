@@ -1,4 +1,4 @@
-// types/next-auth.d.ts
+/// <reference types="next-auth" />
 import NextAuth from 'next-auth'
 
 declare module 'next-auth' {

@@ -1,8 +1,8 @@
 // lib/authOptions.ts
-import type { NextAuthOptions } from 'next-auth'
+import { NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import { compare } from 'bcryptjs'
-import { supabase } from './supabaseClient'
+import { supabase } from '@/lib/supabaseClient'
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -53,6 +53,11 @@ export const authOptions: NextAuthOptions = {
       }
       return session
     },
+    async redirect({ baseUrl, url }) {
+  // Redirection personnalisée après connexion
+  // NextAuth ne fournit PAS toujours le token ici, donc on redirige vers une page par défaut
+  return url.startsWith(baseUrl) ? url : `${baseUrl}/dashboard`
+},
   },
   pages: {
     signIn: '/login',
