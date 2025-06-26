@@ -1,3 +1,4 @@
+// app/api/ticket/route.ts
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/authOptions'
@@ -11,7 +12,7 @@ export async function GET(req: Request) {
 
     let query = supabase
       .from('ticket')
-      .select('*, user:users(name)')
+      .select('*, user:users(name, unite)') // 👈 ajouter unite ici
       .order('created_at', { ascending: false })
 
     if (user_id) {
