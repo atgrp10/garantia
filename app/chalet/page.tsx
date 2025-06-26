@@ -181,12 +181,35 @@ export default function ChaletReservationPage() {
           <p className="text-gray-500 text-sm">Aucune réservation pour le moment.</p>
         ) : (
           <ul className="space-y-2 text-sm">
-            {reservations.map((r) => (
-              <li key={r.id} className="border p-2 rounded">
-                {new Date(r.date).toLocaleDateString()} — {r.start_time} à {r.end_time} —
-                <span className="ml-2 font-medium">{r.status}</span>
-              </li>
-            ))}
+            {reservations.map((r) => {
+              const statusLabel = r.status.toLowerCase()
+              const statusColor =
+                statusLabel === 'approuvé'
+                  ? 'bg-green-100 text-green-800'
+                  : statusLabel === 'refusé'
+                  ? 'bg-red-100 text-red-800'
+                  : 'bg-yellow-100 text-yellow-800'
+
+              const statusIcon =
+                statusLabel === 'approuvé'
+                  ? '✅'
+                  : statusLabel === 'refusé'
+                  ? '❌'
+                  : '⏳'
+
+              return (
+                <li key={r.id} className="border p-2 rounded flex justify-between items-center">
+                  <span>
+                    📅 {new Date(r.date).toLocaleDateString()} — {r.start_time} à {r.end_time}
+                  </span>
+                  <span
+                    className={`text-xs font-semibold px-2 py-1 rounded ${statusColor}`}
+                  >
+                    {statusIcon} {r.status.charAt(0).toUpperCase() + r.status.slice(1)}
+                  </span>
+                </li>
+              )
+            })}
           </ul>
         )}
       </div>
