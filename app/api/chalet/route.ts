@@ -13,39 +13,40 @@ export async function POST(req: Request) {
   try {
     const { date, start_time, end_time, reglement } = await req.json()
 
-    if (!date || !start_time || !end_time || reglement !== true) {
-      return NextResponse.json({ error: 'Tous les champs sont requis et le règlement doit être accepté.' }, { status: 400 })
+    if (!date || !start_time || !end_time || !reglement) {
+      return NextResponse.json({ error: 'Champs requis manquants' }, { status: 400 })
     }
 
-    // Vérifier les conflits (start_time < fin existante && end_time > début existant)
-    const { data: conflits, error: conflitError } = await supabase
+    // Vérifie conflit avec d'autres réservations
+    const { data: existing, error: checkError } = await supabase
       .from('chalet')
       .select('*')
       .eq('date', date)
-      .or(`start_time.lt.${end_time},end_time.gt.${start_time}`)
+      .not('status', 'eq', 'refusée')
+      .filter('start_time', '<', end_time)
+      .filter('end_time', '>', start_time)
 
-    if (conflitError) {
-      console.error('Erreur lors de la vérification de conflit:', conflitError)
+    if (checkError) {
+      console.error('Erreur vérification:', checkError)
       return NextResponse.json({ error: 'Erreur de vérification de disponibilité' }, { status: 500 })
     }
 
-    if (conflits && conflits.length > 0) {
-      return NextResponse.json({ error: 'Ce créneau horaire est déjà réservé' }, { status: 409 })
+    if (existing && existing.length > 0) {
+      return NextResponse.json({ error: 'Le créneau horaire est déjà réservé' }, { status: 409 })
     }
 
-    const { error: insertError } = await supabase.from('chalet').insert([
-      {
-        user_id: session.user.id,
-        date,
-        start_time,
-        end_time,
-        status: 'en attente',
-        reglement: true,
-      },
-    ])
+    // Insertion
+    const { error } = await supabase.from('chalet').insert([{
+      user_id: session.user.id,
+      date,
+      start_time,
+      end_time,
+      status: 'en attente',
+      reglement: true,
+    }])
 
-    if (insertError) {
-      console.error('Erreur lors de l’insertion:', insertError)
+    if (error) {
+      console.error('Erreur Supabase:', error)
       return NextResponse.json({ error: 'Erreur lors de la création de la réservation' }, { status: 500 })
     }
 
