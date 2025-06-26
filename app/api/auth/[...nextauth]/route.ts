@@ -5,7 +5,7 @@ import { compare } from 'bcryptjs'
 import { supabase } from '@/lib/supabaseClient'
 import type { NextAuthOptions } from 'next-auth'
 
-const authOptions: NextAuthOptions = {
+export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
       name: 'Credentials',
@@ -13,9 +13,7 @@ const authOptions: NextAuthOptions = {
         email: { label: 'Email', type: 'email' },
         password: { label: 'Password', type: 'password' },
       },
-      async authorize(
-        credentials: Record<'email' | 'password', string> | undefined
-      ) {
+      async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null
 
         const { data: user, error } = await supabase

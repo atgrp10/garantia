@@ -1,5 +1,6 @@
-// app/api/ticket/route.ts
 import { NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 import { supabase } from '@/lib/supabaseClient'
 
 // ✅ GET → utilisé dans /admin pour récupérer la liste des tickets
@@ -22,28 +23,33 @@ export async function GET() {
   }
 }
 
-// ✅ POST → déjà présent, tu le gardes tel quel
+// ✅ POST → création d’un ticket avec user_id tiré de la session
 export async function POST(req: Request) {
+  const session = await getServerSession(authOptions)
+
+  if (!session || !session.user || !session.user.id) {
+    return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
+  }
+
   try {
     const {
       problem,
       type,
       priorité,
       date_incident,
-      user_id,
     } = await req.json()
 
-    if (!user_id || !problem || !type || !priorité || !date_incident) {
+    if (!problem || !type || !priorité || !date_incident) {
       return NextResponse.json({ error: 'Champs requis manquants' }, { status: 400 })
     }
 
     const { error } = await supabase.from('ticket').insert([
       {
+        user_id: session.user.id, // ✅ automatiquement récupéré
         problem,
         type,
         priorité,
         date_incident,
-        user_id,
         status: 'ouvert',
       },
     ])

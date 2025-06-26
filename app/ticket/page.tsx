@@ -1,10 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+import { useSession } from 'next-auth/react'
 
 export default function TicketPage() {
+  const { data: session } = useSession()
+
   const [form, setForm] = useState({
-    user_id: '',
     problem: '',
     type: '',
     priorité: '',
@@ -23,10 +25,18 @@ export default function TicketPage() {
     setError('')
     setSuccess(false)
 
+    if (!session?.user?.id) {
+      setError('Utilisateur non connecté.')
+      return
+    }
+
     const res = await fetch('/api/ticket', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form),
+      body: JSON.stringify({
+        ...form,
+        user_id: session.user.id, // 👈 injecté automatiquement
+      }),
     })
 
     const data = await res.json()
@@ -36,7 +46,6 @@ export default function TicketPage() {
     } else {
       setSuccess(true)
       setForm({
-        user_id: '',
         problem: '',
         type: '',
         priorité: '',
@@ -51,15 +60,6 @@ export default function TicketPage() {
       {error && <p className="text-red-600 mb-2">{error}</p>}
       {success && <p className="text-green-600 mb-2">Ticket créé avec succès !</p>}
       <form onSubmit={handleSubmit} className="space-y-4">
-        <input
-          type="text"
-          name="user_id"
-          placeholder="ID utilisateur"
-          className="w-full border p-2 rounded"
-          value={form.user_id}
-          onChange={handleChange}
-          required
-        />
         <input
           type="text"
           name="problem"
