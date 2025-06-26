@@ -1,13 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { signIn, useSession } from 'next-auth/react'
+import { useState } from 'react'
+import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 
 export default function LoginPage() {
   const router = useRouter()
-  const { data: session, status } = useSession()
-
   const [form, setForm] = useState({ email: '', password: '' })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -30,18 +28,10 @@ export default function LoginPage() {
     if (res?.error) {
       setError('Identifiants invalides')
       setLoading(false)
+    } else {
+      router.push('/dashboard') // 🔁 Redirection après login réussi
     }
   }
-
-  useEffect(() => {
-    if (status === 'authenticated') {
-      if (session?.user.role === 'admin') {
-        router.replace('/admin')
-      } else {
-        router.replace('/ticket')
-      }
-    }
-  }, [status, session, router])
 
   return (
     <div className="max-w-md mx-auto mt-10 p-6 border rounded-xl shadow">
