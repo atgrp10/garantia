@@ -1,99 +1,138 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import { useSession } from 'next-auth/react'
 
-type Reservation = {
-  id: number
-  date: string
-  heure_debut: string
-  heure_fin: string
-  unite: string
-  status: string
-}
-
-export default function CalendrierChalet() {
-  const [reservations, setReservations] = useState<Reservation[]>([])
-  const [currentDate, setCurrentDate] = useState(new Date())
-
-  useEffect(() => {
-    fetchReservations()
-  }, [])
-
-  const fetchReservations = async () => {
-    const res = await fetch('/api/chalet')
-    const data = await res.json()
-    setReservations(data.filter((r: Reservation) => r.status === 'acceptée'))
-  }
-
-  const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
-  const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0)
-
-  const daysInMonth = Array.from({ length: endOfMonth.getDate() }, (_, i) => {
-    const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), i + 1)
-    const yyyyMMdd = date.toISOString().split('T')[0]
-    const dayReservations = reservations.filter(r => r.date === yyyyMMdd)
-    return { date, dayReservations }
+export default function ChaletReservationPage() {
+  const { data: session } = useSession()
+  const [form, setForm] = useState({
+    date: '',
+    start_time: '',
+    end_time: '',
+    reglement: false,
   })
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState(false)
 
-  const handlePrevMonth = () => {
-    const prev = new Date(currentDate)
-    prev.setMonth(prev.getMonth() - 1)
-    setCurrentDate(prev)
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type, checked } = e.target
+    setForm((prev) => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value,
+    }))
   }
 
-  const handleNextMonth = () => {
-    const next = new Date(currentDate)
-    next.setMonth(next.getMonth() + 1)
-    setCurrentDate(next)
+  const validateHeures = () => {
+    const [startHour, startMin] = form.start_time.split(':').map(Number)
+    const [endHour, endMin] = form.end_time.split(':').map(Number)
+    const start = new Date(0, 0, 0, startHour, startMin)
+    const end = new Date(0, 0, 0, endHour, endMin)
+    const diff = (end.getTime() - start.getTime()) / (1000 * 60 * 60)
+    return diff > 0 && diff <= 4
   }
 
-  const dayOfWeek = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam']
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+    setSuccess(false)
+
+    if (!session?.user?.id) {
+      setError('Vous devez être connecté pour réserver.')
+      return
+    }
+
+    if (!form.date || !form.start_time || !form.end_time || !form.reglement) {
+      setError('Veuillez remplir tous les champs et accepter les règlements.')
+      return
+    }
+
+    if (!validateHeures()) {
+      setError('La réservation doit durer entre 1 et 4 heures.')
+      return
+    }
+
+    try {
+      const res = await fetch('/api/chalet', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      })
+      const result = await res.json()
+      if (!res.ok) throw new Error(result.error || 'Erreur')
+
+      setSuccess(true)
+      setForm({ date: '', start_time: '', end_time: '', reglement: false })
+    } catch (err: any) {
+      setError(err.message || 'Erreur serveur')
+    }
+  }
 
   return (
-    <div className="max-w-4xl mx-auto p-4">
-      <div className="flex justify-between items-center mb-6">
-        <button
-          onClick={handlePrevMonth}
-          className="px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded"
-        >
-          ◀
-        </button>
-        <h1 className="text-xl font-bold">
-          {currentDate.toLocaleDateString('fr-CA', { month: 'long', year: 'numeric' })}
-        </h1>
-        <button
-          onClick={handleNextMonth}
-          className="px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded"
-        >
-          ▶
-        </button>
-      </div>
+    <div className="max-w-xl mx-auto p-6">
+      <h1 className="text-2xl font-bold mb-6 text-center text-blue-700">Réservation du chalet urbain</h1>
 
-      <div className="grid grid-cols-7 gap-2 text-center font-semibold text-gray-600 mb-2">
-        {dayOfWeek.map((d) => (
-          <div key={d}>{d}</div>
-        ))}
-      </div>
+      <form onSubmit={handleSubmit} className="space-y-4 bg-white p-4 rounded shadow">
+        <div>
+          <label className="block font-semibold mb-1">Date</label>
+          <input
+            type="date"
+            name="date"
+            value={form.date}
+            onChange={handleChange}
+            className="w-full border px-3 py-2 rounded"
+            required
+          />
+        </div>
 
-      <div className="grid grid-cols-7 gap-2">
-        {[...Array(startOfMonth.getDay())].map((_, i) => (
-          <div key={`pad-${i}`} />
-        ))}
-        {daysInMonth.map(({ date, dayReservations }) => (
-          <div key={date.toISOString()} className="border p-2 rounded min-h-[80px] text-sm flex flex-col bg-white shadow-sm">
-            <div className="font-bold text-gray-700">{date.getDate()}</div>
-            {dayReservations.map((r) => (
-              <div key={r.id} className="mt-1 p-1 rounded text-xs bg-blue-100 text-blue-800">
-                {r.heure_debut} - {r.heure_fin} <br /> {r.unite}
-              </div>
-            ))}
+        <div className="flex gap-4">
+          <div className="flex-1">
+            <label className="block font-semibold mb-1">Heure de début</label>
+            <input
+              type="time"
+              name="start_time"
+              value={form.start_time}
+              onChange={handleChange}
+              className="w-full border px-3 py-2 rounded"
+              required
+            />
           </div>
-        ))}
-      </div>
+          <div className="flex-1">
+            <label className="block font-semibold mb-1">Heure de fin</label>
+            <input
+              type="time"
+              name="end_time"
+              value={form.end_time}
+              onChange={handleChange}
+              className="w-full border px-3 py-2 rounded"
+              required
+            />
+          </div>
+        </div>
 
-      <p className="mt-4 text-sm text-center text-gray-500">
-        * Seules les réservations approuvées apparaissent ici
-      </p>
+        <div className="flex items-center">
+          <input
+            type="checkbox"
+            name="reglement"
+            id="reglement"
+            checked={form.reglement}
+            onChange={handleChange}
+            className="mr-2"
+          />
+          <label htmlFor="reglement" className="text-sm">
+            J’accepte les règlements et conditions d’utilisation du chalet urbain
+          </label>
+        </div>
+
+        {error && <p className="text-red-600 text-sm">{error}</p>}
+        {success && <p className="text-green-600 text-sm">Réservation envoyée avec succès!</p>}
+
+        <button
+          type="submit"
+          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+        >
+          Réserver
+        </button>
+      </form>
     </div>
   )
 }
