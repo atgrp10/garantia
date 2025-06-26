@@ -54,10 +54,9 @@ export const authOptions: NextAuthOptions = {
       return session
     },
     async redirect({ baseUrl, url }) {
-  // Redirection personnalisée après connexion
-  // NextAuth ne fournit PAS toujours le token ici, donc on redirige vers une page par défaut
-  return url.startsWith(baseUrl) ? url : `${baseUrl}/dashboard`
-},
+      // Si l'utilisateur clique sur un lien dans le même domaine, on le respecte
+      return url.startsWith(baseUrl) ? url : `${baseUrl}/dashboard`
+    },
   },
   pages: {
     signIn: '/login',
