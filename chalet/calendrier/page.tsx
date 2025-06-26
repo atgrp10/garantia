@@ -12,7 +12,7 @@ type Reservation = {
   status: string
 }
 
-export default function ChaletCalendarPage() {
+export default function AdminChaletPage() {
   const [reservations, setReservations] = useState<Reservation[]>([])
   const [loading, setLoading] = useState(true)
 
