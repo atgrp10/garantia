@@ -44,6 +44,13 @@ export default function ChaletReservationPage() {
     return diff > 0 && diff <= 4
   }
 
+  const formatLocalDate = (dateStr: string) => {
+    const date = new Date(dateStr)
+    const tzOffset = date.getTimezoneOffset() * 60000
+    const localDate = new Date(date.getTime() - tzOffset)
+    return localDate.toISOString().split('T')[0]
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
@@ -68,7 +75,10 @@ export default function ChaletReservationPage() {
       const res = await fetch('/api/chalet', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          ...form,
+          date: formatLocalDate(form.date),
+        }),
       })
       const result = await res.json()
       if (!res.ok) throw new Error(result.error || 'Erreur')
