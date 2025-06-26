@@ -2,9 +2,11 @@
 
 import { useState } from 'react'
 import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
 
 export default function TicketPage() {
   const { data: session } = useSession()
+  const router = useRouter()
 
   const [form, setForm] = useState({
     problem: '',
@@ -51,6 +53,10 @@ export default function TicketPage() {
         priorité: '',
         date_incident: '',
       })
+      // ✅ Redirection vers /dashboard après 2 secondes
+      setTimeout(() => {
+        router.push('/dashboard')
+      }, 2000)
     }
   }
 
