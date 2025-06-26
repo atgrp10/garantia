@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { signOut } from 'next-auth/react'
+import { useSession, signOut } from 'next-auth/react'
 
 type Ticket = {
   id: number
@@ -19,6 +19,9 @@ type Ticket = {
 }
 
 export default function AdminPage() {
+  const { data: session, status } = useSession()
+  const router = useRouter()
+
   const [tickets, setTickets] = useState<Ticket[]>([])
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
@@ -27,11 +30,15 @@ export default function AdminPage() {
   const [filterStatus, setFilterStatus] = useState('')
   const [filterUnite, setFilterUnite] = useState('')
 
-  const router = useRouter()
-
+  // Redirection si non-admin
   useEffect(() => {
-    fetchTickets()
-  }, [])
+    if (status === 'loading') return
+    if (!session || session.user.role !== 'admin') {
+      router.push('/dashboard') // ou une page 403 si tu préfères
+    } else {
+      fetchTickets()
+    }
+  }, [session, status])
 
   const fetchTickets = async () => {
     setLoading(true)
@@ -73,6 +80,10 @@ export default function AdminPage() {
   })
 
   const allUnites = Array.from(new Set(tickets.map(ticket => ticket.user?.unite).filter(Boolean)))
+
+  if (!session || session.user.role !== 'admin') {
+    return <p className="text-center mt-10 text-red-500">Accès refusé.</p>
+  }
 
   return (
     <div className="max-w-7xl mx-auto p-6">

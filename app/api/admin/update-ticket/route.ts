@@ -1,8 +1,16 @@
 // app/api/admin/update-ticket/route.ts
 import { NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabaseClient'
+import { authOptions } from '@/lib/authOptions'
+import { getServerSession } from 'next-auth'
 
 export async function POST(req: Request) {
+  const session = await getServerSession(authOptions)
+
+  if (!session || session.user.role !== 'admin') {
+    return NextResponse.json({ error: 'Accès non autorisé' }, { status: 403 })
+  }
+
   try {
     const { id, status } = await req.json()
 
