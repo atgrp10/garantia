@@ -25,6 +25,7 @@ export default function AdminPage() {
 
   const [search, setSearch] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
+  const [filterUnite, setFilterUnite] = useState('')
 
   const router = useRouter()
 
@@ -67,8 +68,11 @@ export default function AdminPage() {
   const filteredTickets = tickets.filter(ticket => {
     const matchName = ticket.user?.name?.toLowerCase().includes(search.toLowerCase())
     const matchStatus = filterStatus ? ticket.status === filterStatus : true
-    return matchName && matchStatus
+    const matchUnite = filterUnite ? ticket.user?.unite === filterUnite : true
+    return matchName && matchStatus && matchUnite
   })
+
+  const allUnites = Array.from(new Set(tickets.map(ticket => ticket.user?.unite).filter(Boolean)))
 
   return (
     <div className="max-w-7xl mx-auto p-6">
@@ -88,17 +92,27 @@ export default function AdminPage() {
           placeholder="Rechercher par nom"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="border px-3 py-2 rounded w-full sm:w-1/2"
+          className="border px-3 py-2 rounded w-full sm:w-1/3"
         />
         <select
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value)}
-          className="border px-3 py-2 rounded w-full sm:w-1/2"
+          className="border px-3 py-2 rounded w-full sm:w-1/3"
         >
           <option value="">-- Filtrer par statut --</option>
           <option value="ouvert">Ouvert</option>
           <option value="en traitement">En traitement</option>
           <option value="résolu">Résolu</option>
+        </select>
+        <select
+          value={filterUnite}
+          onChange={(e) => setFilterUnite(e.target.value)}
+          className="border px-3 py-2 rounded w-full sm:w-1/3"
+        >
+          <option value="">-- Filtrer par unité --</option>
+          {allUnites.map(unite => (
+            <option key={unite} value={unite}>{unite}</option>
+          ))}
         </select>
       </div>
 
@@ -114,7 +128,8 @@ export default function AdminPage() {
               <th className="p-2 border">Type</th>
               <th className="p-2 border">Priorité</th>
               <th className="p-2 border">Statut</th>
-              <th className="p-2 border">Nom (Unité)</th>
+              <th className="p-2 border">Nom</th>
+              <th className="p-2 border">Unité</th>
               <th className="p-2 border">Actions</th>
             </tr>
           </thead>
@@ -126,7 +141,8 @@ export default function AdminPage() {
                 <td className="p-2 border">{ticket.type}</td>
                 <td className="p-2 border">{ticket.priorité}</td>
                 <td className="p-2 border">{ticket.status}</td>
-                <td className="p-2 border">{ticket.user?.name || 'Inconnu'} ({ticket.user?.unite || 'N/A'})</td>
+                <td className="p-2 border">{ticket.user?.name || 'Inconnu'}</td>
+                <td className="p-2 border">{ticket.user?.unite || 'N/A'}</td>
                 <td className="p-2 border space-x-2">
                   <button
                     onClick={() => updateStatus(ticket.id, 'en traitement')}
