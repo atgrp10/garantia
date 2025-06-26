@@ -1,19 +1,23 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
-import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 export default function ChaletReservationPage() {
   const { data: session } = useSession()
+  const router = useRouter()
+
   const [form, setForm] = useState({
     date: '',
     start_time: '',
     end_time: '',
     reglement: false,
   })
+
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
+  const [reservations, setReservations] = useState<any[]>([])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target
@@ -60,25 +64,41 @@ export default function ChaletReservationPage() {
       })
       const result = await res.json()
       if (!res.ok) throw new Error(result.error || 'Erreur')
-
       setSuccess(true)
       setForm({ date: '', start_time: '', end_time: '', reglement: false })
+      fetchUserReservations()
     } catch (err) {
       if (err instanceof Error) {
-        setError(err.message || 'Erreur serveur')
+        setError(err.message)
       } else {
         setError('Erreur serveur inconnue')
       }
     }
   }
 
+  const fetchUserReservations = async () => {
+    if (!session?.user?.id) return
+    const res = await fetch(`/api/reservation?user_id=${session.user.id}`)
+    const data = await res.json()
+    setReservations(data)
+  }
+
+  useEffect(() => {
+    if (session?.user?.id) {
+      fetchUserReservations()
+    }
+  }, [session?.user?.id])
+
   return (
     <div className="max-w-xl mx-auto p-6">
       {/* Lien discret vers le dashboard */}
-      <div className="mb-4">
-        <Link href="/dashboard" className="text-sm text-gray-500 underline hover:text-gray-700">
+      <div className="text-right mb-2">
+        <button
+          onClick={() => router.push('/dashboard')}
+          className="text-sm text-blue-500 hover:underline"
+        >
           ← Retour au tableau de bord
-        </Link>
+        </button>
       </div>
 
       <h1 className="text-2xl font-bold mb-6 text-center text-blue-700">
@@ -147,6 +167,23 @@ export default function ChaletReservationPage() {
           Réserver
         </button>
       </form>
+
+      {/* Liste des réservations de l’usager */}
+      <div className="mt-8">
+        <h2 className="text-lg font-semibold mb-2">Mes réservations</h2>
+        {reservations.length === 0 ? (
+          <p className="text-gray-500 text-sm">Aucune réservation pour le moment.</p>
+        ) : (
+          <ul className="space-y-2 text-sm">
+            {reservations.map((r) => (
+              <li key={r.id} className="border p-2 rounded">
+                {new Date(r.date).toLocaleDateString()} — {r.start_time} à {r.end_time} —
+                <span className="ml-2 font-medium">{r.status}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   )
 }
