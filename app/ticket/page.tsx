@@ -37,7 +37,7 @@ export default function TicketPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         ...form,
-        user_id: session.user.id, // 👈 injecté automatiquement
+        user_id: session.user.id,
       }),
     })
 
@@ -53,7 +53,6 @@ export default function TicketPage() {
         priorité: '',
         date_incident: '',
       })
-      // ✅ Redirection vers /dashboard après 2 secondes
       setTimeout(() => {
         router.push('/dashboard')
       }, 2000)
@@ -62,9 +61,19 @@ export default function TicketPage() {
 
   return (
     <div className="max-w-md mx-auto mt-10 p-6 border rounded-xl shadow">
-      <h1 className="text-xl font-bold mb-4">Créer un ticket</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-xl font-bold">Créer un ticket</h1>
+        <button
+          onClick={() => router.push('/dashboard')}
+          className="bg-gray-200 text-black px-4 py-2 rounded hover:bg-gray-300 transition"
+        >
+          Retour
+        </button>
+      </div>
+
       {error && <p className="text-red-600 mb-2">{error}</p>}
       {success && <p className="text-green-600 mb-2">Ticket créé avec succès !</p>}
+
       <form onSubmit={handleSubmit} className="space-y-4">
         <input
           type="text"
