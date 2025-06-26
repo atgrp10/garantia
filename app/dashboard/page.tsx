@@ -1,6 +1,6 @@
 'use client'
 
-import { useSession } from 'next-auth/react'
+import { useSession, signOut } from 'next-auth/react'
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 
@@ -32,9 +32,22 @@ export default function DashboardPage() {
     }
   }, [session, status, fetchTickets, router])
 
+  const handleLogout = async () => {
+    await signOut({ redirect: false })
+    router.push('/login')
+  }
+
   return (
     <div className="max-w-2xl mx-auto mt-10 p-4">
-      <h1 className="text-2xl font-bold mb-4">Mes tickets</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Mes tickets</h1>
+        <button
+          onClick={handleLogout}
+          className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition"
+        >
+          Se déconnecter
+        </button>
+      </div>
 
       <button
         className="mb-6 bg-blue-600 text-white px-4 py-2 rounded"
