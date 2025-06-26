@@ -62,14 +62,20 @@ export default function ChaletReservationPage() {
 
       setSuccess(true)
       setForm({ date: '', start_time: '', end_time: '', reglement: false })
-    } catch (err: any) {
-      setError(err.message || 'Erreur serveur')
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message || 'Erreur serveur')
+      } else {
+        setError('Erreur serveur inconnue')
+      }
     }
   }
 
   return (
     <div className="max-w-xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6 text-center text-blue-700">Réservation du chalet urbain</h1>
+      <h1 className="text-2xl font-bold mb-6 text-center text-blue-700">
+        Réservation du chalet urbain
+      </h1>
 
       <form onSubmit={handleSubmit} className="space-y-4 bg-white p-4 rounded shadow">
         <div>
