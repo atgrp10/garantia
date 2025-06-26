@@ -17,21 +17,20 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Champs requis manquants' }, { status: 400 })
     }
 
-    // Vérifie s'il y a un conflit avec une réservation existante (même date, chevauchement des heures)
-    const { data: existing, error: conflictError } = await supabase
+    // Vérifie les conflits de réservation
+    const { data: conflits, error: conflitErreur } = await supabase
       .from('reservation')
       .select('*')
       .eq('date', date)
-      .lt('start_time', end_time)
-      .gt('end_time', start_time)
+      .or(`start_time.lt.${end_time},end_time.gt.${start_time}`)
 
-    if (conflictError) {
-      console.error('Erreur de vérification:', conflictError)
+    if (conflitErreur) {
+      console.error('Erreur de vérification:', conflitErreur)
       return NextResponse.json({ error: 'Erreur de vérification de disponibilité' }, { status: 500 })
     }
 
-    if (existing && existing.length > 0) {
-      return NextResponse.json({ error: 'Le créneau horaire est déjà réservé' }, { status: 409 })
+    if (conflits && conflits.length > 0) {
+      return NextResponse.json({ error: 'Ce créneau est déjà réservé' }, { status: 409 })
     }
 
     const { error: insertError } = await supabase.from('reservation').insert([
@@ -40,19 +39,19 @@ export async function POST(req: Request) {
         date,
         start_time,
         end_time,
-        status: 'en attente',
         règlement_accepté: true,
+        status: 'en attente',
       },
     ])
 
     if (insertError) {
-      console.error('Erreur insertion Supabase:', insertError)
-      return NextResponse.json({ error: 'Erreur lors de la réservation' }, { status: 500 })
+      console.error('Erreur insertion:', insertError)
+      return NextResponse.json({ error: 'Erreur lors de la création de la réservation' }, { status: 500 })
     }
 
     return NextResponse.json({ message: 'Réservation soumise avec succès' }, { status: 200 })
-  } catch (err: any) {
-    console.error('Erreur serveur:', JSON.stringify(err, null, 2))
+  } catch (err) {
+    console.error('Erreur serveur:', err instanceof Error ? err.message : err)
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
   }
 }
