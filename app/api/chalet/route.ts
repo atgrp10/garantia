@@ -1,4 +1,4 @@
-// ✅ FICHIER 1 : app/api/chalet/route.ts
+// ✅ FICHIER : app/api/chalet/route.ts
 
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
@@ -60,13 +60,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Champs requis manquants' }, { status: 400 })
     }
 
-    // Vérification de conflit de réservation exacte (chevauchement)
+    // Vérifie les conflits de plage horaire sur la même date
     const { data: conflits, error: conflitErreur } = await supabase
       .from('reservation')
       .select('*')
       .eq('date', date)
-      .filter('start_time', '<', end_time)
-      .filter('end_time', '>', start_time)
+      .or(`and(start_time.lt.${end_time},end_time.gt.${start_time})`)
 
     if (conflitErreur) {
       console.error('Erreur conflit:', conflitErreur)
